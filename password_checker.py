@@ -5,8 +5,9 @@ import requests
 
 def get_hack_count(query_chars):
     sha1_hash = hash_pass(query_chars)
-    response = send_request(sha1_hash[:5])
+    response = send_request(sha1_hash)
     hash_list = create_hash_list(response)
+    # API responds with hash with 5 first chars discarded
     result = check_pass(hash_list, sha1_hash[5:])
     display_result(query_chars, result)
 
@@ -17,6 +18,7 @@ def hash_pass(password):
 
 
 def send_request(query):
+    # sending query with first 5 characters
     url = f'https://api.pwnedpasswords.com/range/{query[:5]}'
     res = requests.get(url)
     if res.status_code != 200:
