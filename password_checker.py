@@ -1,5 +1,5 @@
+import sys
 import hashlib
-
 import requests
 
 
@@ -11,11 +11,9 @@ def get_hack_count(query_chars):
     display_result(query_chars, result)
 
 
-def display_result(query, num):
-    if num:
-        print(f"Password '{query}' found!, This password was hacked {num:,} times!")
-    else:
-        print(f'Password is secure go ahead :)')
+def hash_pass(password):
+    sha1hash = hashlib.sha1(str(password).encode('utf-8')).hexdigest().upper()
+    return sha1hash
 
 
 def send_request(query):
@@ -26,6 +24,12 @@ def send_request(query):
     return res.text
 
 
+def create_hash_list(response_data):
+    hash_list = response_data.splitlines()
+    hash_list = map(lambda r: r.split(":"), hash_list)
+    return hash_list
+
+
 def check_pass(hash_list, pass_hash):
     for hash_data in hash_list:
         if pass_hash == hash_data[0]:
@@ -33,19 +37,17 @@ def check_pass(hash_list, pass_hash):
     return 0
 
 
-def create_hash_list(response_data):
-    hash_list = response_data.split('\r\n')
-    hash_list = list(map(lambda r: r.split(":"), hash_list))
-    return hash_list
-
-
-def hash_pass(password):
-    sha1hash = hashlib.sha1(str(password).encode('utf-8')).hexdigest().upper()
-    return sha1hash
+def display_result(query, num):
+    if num:
+        print(f"Password '{query}' found!, This password was leaked {num:,} times!")
+    else:
+        print(f"'{query}' is secure go ahead :)")
 
 
 def main():
-    get_hack_count('spongebob')
+    check_list = sys.argv[1:]
+    for pwd in check_list:
+        get_hack_count(pwd)
 
 
 if __name__ == '__main__':
