@@ -3,14 +3,40 @@ import hashlib
 import requests
 
 
-def request_api_data(query_chars):
+def get_hack_count(query_chars):
     sha1_hash = hash_pass(query_chars)
-    url = f'https://api.pwnedpasswords.com/range/{sha1_hash[:5]}'
+    response = send_request(sha1_hash[:5])
+    hash_list = create_hash_list(response)
+    result = check_pass(hash_list, sha1_hash[5:])
+    display_result(query_chars, result)
+
+
+def display_result(query, num):
+    if num:
+        print(f"Password '{query}' found!, This password was hacked {num:,} times!")
+    else:
+        print(f'Password is secure go ahead :)')
+
+
+def send_request(query):
+    url = f'https://api.pwnedpasswords.com/range/{query[:5]}'
     res = requests.get(url)
-    print(res, res.status_code)
     if res.status_code != 200:
         raise RuntimeError(f'Error fetching: {res.status_code}')
-    print(res.text)
+    return res.text
+
+
+def check_pass(hash_list, pass_hash):
+    for hash_data in hash_list:
+        if pass_hash == hash_data[0]:
+            return int(hash_data[1])
+    return 0
+
+
+def create_hash_list(response_data):
+    hash_list = response_data.split('\r\n')
+    hash_list = list(map(lambda r: r.split(":"), hash_list))
+    return hash_list
 
 
 def hash_pass(password):
@@ -19,7 +45,7 @@ def hash_pass(password):
 
 
 def main():
-    request_api_data('password')
+    get_hack_count('spongebob')
 
 
 if __name__ == '__main__':
